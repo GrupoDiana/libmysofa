@@ -290,7 +290,15 @@ static struct MYSOFA_HRTF *getHrtf(struct READER *reader, int *err) {
         dimensionflags |= 8;
         break;
       case 'N':
-        *err = getDimension(&hrtf->N, &dir->dataobject);
+        //*err = getDimension(&hrtf->N, &dir->dataobject);
+        if(dir->dataobject.datalayout_chunk[0] == 0 && dir->dataobject.datalayout_chunk[1] == 0 && dir->dataobject.datalayout_chunk[2] == 0 && dir->dataobject.datalayout_chunk[3] == 0 && dir->dataobject.datalayout_chunk[4] == 0) {
+            *err = getDimension(&hrtf->N, &dir->dataobject);
+        } else {
+           // For FreeFieldDirectivityTF
+            hrtf->N = dir->dataobject.datalayout_chunk[0];
+            dir->dataobject.name[0] = 'F';
+            *err = 0;
+        }
         dimensionflags |= 0x10;
         break;
       case 'M':
@@ -338,6 +346,9 @@ static struct MYSOFA_HRTF *getHrtf(struct READER *reader, int *err) {
     } else if (!strcmp(dir->dataobject.name, "Data.Delay")) {
       *err = getArray(&hrtf->DataDelay, &dir->dataobject);
     } else if (!(dir->dataobject.name[0] && !dir->dataobject.name[1])) {
+      *err = addUserDefinedVariable(hrtf, &dir->dataobject);
+    } else if (dir->dataobject.name[0] == 'F') {
+        // For FreeFieldDirectivityTF
       *err = addUserDefinedVariable(hrtf, &dir->dataobject);
     }
     dir = dir->next;
