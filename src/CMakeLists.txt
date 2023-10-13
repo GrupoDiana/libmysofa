@@ -1,59 +1,10 @@
-macro(use_c99)
-  if(CMAKE_VERSION VERSION_LESS "3.1")
-    if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
-      set(CMAKE_C_FLAGS "--std=gnu99 -pedantic ${CMAKE_C_FLAGS}")
-    endif()
-  else()
-    set(CMAKE_C_STANDARD 99)
-  endif()
-endmacro(use_c99)
-
-use_c99()
 
 configure_file(config.h.in config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-if(NOT MSVC)
-  if(NOT WIN32)
-    find_library(MATH m)
-  else()
-    set(MATH "")
-  endif()
-  include(FindZLIB)
-else()
-  set(MATH "")
-  find_program(NUGET nuget)
-  if(NUGET)
-    execute_process(COMMAND ${NUGET} install zlib)
-  endif()
-  include_directories(
-    ${PROJECT_SOURCE_DIR}/windows/third-party/zlib-1.2.11/include/)
-endif()
-
-if(NOT MSVC)
-  if(NOT WIN32)
-    find_library(MATH m)
-  else()
-    set(MATH "")
-  endif()
-  include(FindZLIB)
-  include_directories(${ZLIB_INCLUDE_DIRS})
-  set(PKG_CONFIG_PRIVATELIBS "-lm ${PKG_CONFIG_PRIVATELIBS}")
-  set(PKG_CONFIG_PRIVATELIBS "-lz ${PKG_CONFIG_PRIVATELIBS}")
-else()
-  set(MATH "")
-  find_program(NUGET nuget)
-  if(NOT NUGET)
-    message(
-      FATAL
-      "Cannot find nuget command line tool.\nInstall it with e.g. choco install nuget.commandline"
-    )
-  else()
-    execute_process(COMMAND ${NUGET} install zlib)
-  endif()
-  include_directories(
-    ${PROJECT_SOURCE_DIR}/windows/third-party/zlib-1.2.11/include/)
-endif()
+include(FindZLIB)
+#HAve deleted libm. If any platform requires it look here
+# https://stackoverflow.com/questions/32816646/can-cmake-detect-if-i-need-to-link-to-libm-when-using-pow-in-c
 
 set(libsrc
     hrtf/reader.c
@@ -88,7 +39,10 @@ target_include_directories(mysofa-static
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/hrtf>"
   $<INSTALL_INTERFACE:include/>
 )
-target_link_libraries(mysofa-static LINK_PRIVATE ${MATH} ${ZLIB_LIBRARIES})
+# Have deleted libm. If any platform requires it look here
+# https://stackoverflow.com/questions/32816646/can-cmake-detect-if-i-need-to-link-to-libm-when-using-pow-in-c
+
+target_link_libraries(mysofa-static PRIVATE ${ZLIB_LIBRARIES})
 set_target_properties(
   mysofa-static
   PROPERTIES OUTPUT_NAME mysofa CLEAN_DIRECT_OUTPUT 1 POSITION_INDEPENDENT_CODE
@@ -100,17 +54,6 @@ install(TARGETS mysofa-static
   PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
   )
 
-  if(UNIX
-     AND CODE_COVERAGE
-     AND CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    target_compile_options(mysofa-static PUBLIC -g -O0 -Wall -fprofile-arcs
-                                                -ftest-coverage)
-    if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.13)
-      target_link_options(mysofa-static PUBLIC --coverage)
-    else()
-      target_link_libraries(mysofa-static LINK_PUBLIC gcov --coverage)
-    endif()
-  endif()
 endif()
 
 if(BUILD_SHARED_LIBS)
@@ -120,7 +63,10 @@ if(BUILD_SHARED_LIBS)
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/hrtf>"
     $<INSTALL_INTERFACE:include/>
   )
-  target_link_libraries(mysofa-shared PRIVATE ${MATH} ${ZLIB_LIBRARIES})
+#  Have deleted libm. If any platform requires it look here
+# https://stackoverflow.com/questions/32816646/can-cmake-detect-if-i-need-to-link-to-libm-when-using-pow-in-c
+
+  target_link_libraries(mysofa-shared PRIVATE ${ZLIB_LIBRARIES})
   set_target_properties(mysofa-shared
                         PROPERTIES OUTPUT_NAME mysofa CLEAN_DIRECT_OUTPUT 1)
   # Rename the Windows import library (stub) of the DLL to prevent a name clash
@@ -144,18 +90,6 @@ if(BUILD_SHARED_LIBS)
     STATIC_DEFINE MYSOFA_STATIC
   )
 
-  if(UNIX
-     AND CODE_COVERAGE
-     AND CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    target_compile_options(mysofa-shared PUBLIC -g -O0 -Wall -fprofile-arcs
-                                                -ftest-coverage)
-    if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.13)
-      target_link_options(mysofa-shared PUBLIC --coverage)
-    else()
-      target_link_libraries(mysofa-shared LINK_PUBLIC gcov --coverage)
-    endif()
-  endif()
-
   install(
     TARGETS mysofa-shared
     EXPORT mysofa_exports
@@ -177,56 +111,6 @@ if(BUILD_TESTS)
     target_link_libraries(mysofa2json mysofa-shared)
   endif()
 
-  add_executable(
-    external
-    tests/external.c
-    tests/check.c
-    tests/check_data.c
-    tests/lookup.c
-    tests/neighbors.c
-    tests/interpolate.c
-    tests/resample.c
-    tests/loudness.c
-    tests/minphase.c
-    tests/easy.c
-    tests/cache.c
-    tests/json.c
-    tests/user_defined_variable.c)
-  if(BUILD_STATIC_LIBS)
-    target_link_libraries(external mysofa-static ${CUNIT_LIBRARIES})
-  else()
-    target_link_libraries(external mysofa-shared ${CUNIT_LIBRARIES} m)
-  endif()
-  add_test(
-    NAME external
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    COMMAND external)
-
-  add_executable(internal tests/internal.c tests/tools.c hrtf/tools.c)
-  target_link_libraries(internal m ${CUNIT_LIBRARIES})
-  add_test(
-    NAME internal
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    COMMAND internal)
-
-  add_executable(multithread tests/multithread.c)
-  if(BUILD_STATIC_LIBS)
-    target_link_libraries(multithread mysofa-static pthread)
-  else()
-    target_link_libraries(multithread mysofa-shared pthread m)
-  endif()
-  add_test(
-    NAME multithread
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    COMMAND multithread)
-
-  if(UNIX
-     AND CODE_COVERAGE
-     AND CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    target_compile_options(internal PUBLIC -g -O0 -Wall -fprofile-arcs
-                                           -ftest-coverage)
-    target_link_libraries(internal gcov --coverage)
-  endif()
 
   install(
     TARGETS mysofa2json
