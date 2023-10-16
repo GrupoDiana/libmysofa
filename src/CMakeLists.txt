@@ -38,6 +38,8 @@ target_include_directories(mysofa-static
   PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/hrtf>"
   $<INSTALL_INTERFACE:include/>
+  PRIVATE 
+  ${ZLIB_INCLUDE_DIR}
 )
 # Have deleted libm. If any platform requires it look here
 # https://stackoverflow.com/questions/32816646/can-cmake-detect-if-i-need-to-link-to-libm-when-using-pow-in-c
@@ -62,6 +64,8 @@ if(BUILD_SHARED_LIBS)
     PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/hrtf>"
     $<INSTALL_INTERFACE:include/>
+    PRIVATE
+    ${ZLIB_INCLUDE_DIR}
   )
 #  Have deleted libm. If any platform requires it look here
 # https://stackoverflow.com/questions/32816646/can-cmake-detect-if-i-need-to-link-to-libm-when-using-pow-in-c
