@@ -48,7 +48,7 @@ int changeAttribute(struct MYSOFA_ATTRIBUTE *attr, char *name, char *value,
 }
 
 MYSOFA_EXPORT
-char *mysofa_getAttribute(struct MYSOFA_ATTRIBUTE *attr, char *name) {
+char *mysofa_getAttribute(struct MYSOFA_ATTRIBUTE *attr, const char *name) {
   while (attr) {
     if (attr->name && !strcmp(name, attr->name)) {
       return attr->value;

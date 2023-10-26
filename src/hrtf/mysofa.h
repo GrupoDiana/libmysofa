@@ -131,7 +131,7 @@ struct MYSOFA_HRTF *mysofa_load(const char *filename, int *err);
 struct MYSOFA_HRTF *mysofa_load_data(const char *data, size_t size, int *err);
 
 int mysofa_check(struct MYSOFA_HRTF *hrtf);
-char *mysofa_getAttribute(struct MYSOFA_ATTRIBUTE *attr, char *name);
+char *mysofa_getAttribute(struct MYSOFA_ATTRIBUTE *attr, const char *name);
 void mysofa_tospherical(struct MYSOFA_HRTF *hrtf);
 void mysofa_tocartesian(struct MYSOFA_HRTF *hrtf);
 void mysofa_free(struct MYSOFA_HRTF *hrtf);
