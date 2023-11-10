@@ -3,6 +3,7 @@ configure_file(config.h.in config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 include(FindZLIB)
+
 #HAve deleted libm. If any platform requires it look here
 # https://stackoverflow.com/questions/32816646/can-cmake-detect-if-i-need-to-link-to-libm-when-using-pow-in-c
 
@@ -33,6 +34,7 @@ set(public-headers
 )
 
 if(BUILD_STATIC_LIBS)
+set(ZLIB_USE_STATIC_LIBS "ON")
 add_library(mysofa-static STATIC ${libsrc})
 target_include_directories(mysofa-static
   PUBLIC
