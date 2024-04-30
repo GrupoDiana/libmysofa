@@ -541,7 +541,7 @@ static int readOHDRHeaderMessageDataLayout(struct READER *reader,
     for (i = 0; i < data->ds.dimensionality; i++)
       size *= data->ds.dimension_size[i];
 
-    if (validAddress(reader, data_address) && dimensionality <= 4) {
+    if (validAddress(reader, data_address) && dimensionality <= 5) {
       store = mysofa_tell(reader);
       if (mysofa_seek(reader, data_address, SEEK_SET) < 0)
         return errno; // LCOV_EXCL_LINE
