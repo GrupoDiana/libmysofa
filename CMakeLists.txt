@@ -46,7 +46,7 @@ if(BUILD_TESTS)
 
   enable_testing()
 
-  add_test(Mesh2HRTF src/mysofa2json -c
+  add_test(Mesh2HRTF src/mysofa2json -c -o tmp.json
            ${PROJECT_SOURCE_DIR}/tests/Mesh2HRTF.sofa)
 endif(BUILD_TESTS)
 

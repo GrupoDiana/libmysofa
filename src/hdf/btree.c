@@ -213,6 +213,7 @@ int treeRead(struct READER *reader, struct DATAOBJECT *data) {
 
   int i, j, err, olen, elements, size, x, y, z, b, e, dy, dz, sx, sy, sz, dzy,
       szy;
+  int k, dk, sk, szk, szyk, dzk, dzyk;
   char *input, *output;
 
   uint8_t node_type, node_level;
@@ -229,9 +230,9 @@ int treeRead(struct READER *reader, struct DATAOBJECT *data) {
   UNUSED(address_of_left_sibling);
   UNUSED(key);
 
-  if (data->ds.dimensionality > 3) {
-    mylog("TREE dimensions > 3"); // LCOV_EXCL_LINE
-    return MYSOFA_INVALID_FORMAT; // LCOV_EXCL_LINE
+  if (data->ds.dimensionality > 4) {
+    mylog("TREE dimensions > 4"); // LCOV_EXCL_LINE
+    return MYSOFA_INVALID_FORMAT; // LCOV_EXCL_LINE    
   }
 
   /* read signature */
@@ -257,14 +258,20 @@ int treeRead(struct READER *reader, struct DATAOBJECT *data) {
     elements *= data->datalayout_chunk[j];
   dy = data->datalayout_chunk[1];
   dz = data->datalayout_chunk[2];
+  dk = data->datalayout_chunk[3];
   sx = data->ds.dimension_size[0];
   sy = data->ds.dimension_size[1];
   sz = data->ds.dimension_size[2];
+  sk = data->ds.dimension_size[3];
   dzy = dz * dy;
   szy = sz * sy;
+  dzk = dz * dk;
+  dzyk = dz * dy * dk;
+  szk = sz * sk;
+  szyk = sz * sy * sk;
   size = data->datalayout_chunk[data->ds.dimensionality];
 
-  mylog("elements %d size %d\n", elements, size);
+  mylog("%s : elements %d size %d\n", data->name, elements, size);
 
   if (elements <= 0 || size <= 0 || elements >= 0x290000 || size > 0x10)
     return MYSOFA_INVALID_FORMAT; // LCOV_EXCL_LINE
@@ -366,6 +373,24 @@ int treeRead(struct READER *reader, struct DATAOBJECT *data) {
           }
         }
         break;
+      case 4:
+          for (i = 0; i < olen; i++) {
+              b = i / elements;
+              x = i % elements;
+
+              k = x % dk + start[3];
+              z = (x / dk) % dz + start[2];
+              y = (x / dzk) % dy + start[1];
+              x = (x / dzyk) + start[0];
+              if (k < sk && z < sz && y < sy && x < sx) {
+                  //j = (x * szy + y * sz + z) * size + b;
+                  j = (x * szyk + y * szk + z * sk + k) * size + b;
+                  if (j >= 0 && j < data->data_len) {
+                      ((char*)data->data)[j] = output[i];
+                  }
+              }
+          }
+          break;
       default:
         mylog("invalid dim\n");       // LCOV_EXCL_LINE
         return MYSOFA_INTERNAL_ERROR; // LCOV_EXCL_LINE
