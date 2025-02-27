@@ -1,12 +1,16 @@
 cmake_minimum_required(VERSION 3.5)
 project(libmysofa C CXX)
 
+if (APPLE)
+  set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64")
+endif()
+
 include(CheckCCompilerFlag)
 include(GenerateExportHeader)
 include(GNUInstallDirs)
 
-option(BUILD_TESTS "Build test programs" ON)
-option(BUILD_SHARED_LIBS "Build shared library" ON)
+option(BUILD_TESTS "Build test programs" OFF)
+option(BUILD_SHARED_LIBS "Build shared library" OFF)
 option(BUILD_STATIC_LIBS "Build static library" ON)
 
 set(CPACK_PACKAGE_DESCRIPTION "SOFA file reader for better HRTFs")
