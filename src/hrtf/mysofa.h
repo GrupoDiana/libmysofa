@@ -133,7 +133,7 @@ MYSOFA_EXPORT struct MYSOFA_HRTF *mysofa_load(const char *filename, int *err);
 MYSOFA_EXPORT struct MYSOFA_HRTF *mysofa_load_data(const char *data, size_t size, int *err);
 
 MYSOFA_EXPORT int mysofa_check(struct MYSOFA_HRTF *hrtf);
-MYSOFA_EXPORT char *mysofa_getAttribute(struct MYSOFA_ATTRIBUTE *attr, char *name);
+MYSOFA_EXPORT char *mysofa_getAttribute(struct MYSOFA_ATTRIBUTE *attr, const char *name);
 MYSOFA_EXPORT void mysofa_tospherical(struct MYSOFA_HRTF *hrtf);
 MYSOFA_EXPORT void mysofa_tocartesian(struct MYSOFA_HRTF *hrtf);
 MYSOFA_EXPORT void mysofa_free(struct MYSOFA_HRTF *hrtf);
