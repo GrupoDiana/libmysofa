@@ -12,6 +12,9 @@ include(GNUInstallDirs)
 option(BUILD_TESTS "Build test programs" OFF)
 option(BUILD_SHARED_LIBS "Build shared library" OFF)
 option(BUILD_STATIC_LIBS "Build static library" ON)
+# Add an option to build for iOS
+# Configure later using cmake -DBUILD_IOS=ON -DBUILD_STATIC_LIBS=ON 
+option(BUILD_IOS "Build for iOS" OFF)
 
 set(CPACK_PACKAGE_DESCRIPTION "SOFA file reader for better HRTFs")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY
@@ -97,3 +100,12 @@ install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/mysofaConfigVersion.cmake
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/mysofa
 )
+
+if(BUILD_IOS)
+  set(CMAKE_SYSTEM_NAME iOS)
+  set(CMAKE_OSX_SYSROOT iphoneos)
+  set(CMAKE_OSX_ARCHITECTURES "arm64")
+  set(CMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "NO")
+  set(CMAKE_XCODE_ATTRIBUTE_ENABLE_BITCODE "YES")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fembed-bitcode")
+endif()

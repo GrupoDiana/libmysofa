@@ -145,3 +145,6 @@ src/hrtf/mysofa_export.h
 src/hrtf/config.h
 
 .vscode/settings.json
+
+.DS_Store
+build-ios/
